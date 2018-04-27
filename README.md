@@ -12,6 +12,7 @@ solvers for numerical optimization. Languages currently available are
   - `Java`
   - `MATLAB/Octave`
   - `Python`
+  - `Scala`
 
 Contributions to link further languages (including a better
 example in `C++`) are more than welcome.
@@ -53,8 +54,8 @@ For using `git` under Windows (optional), we recommend installing [TortoiseGit](
 _Additional_ requirements for running an algorithm in a specific language.
 
 * **C**: `make`, such as GNU make (when using [GNU make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm), make sure that your ``CC`` environment variable is set to `gcc` by potentially typing `set CC=gcc` if you see an error). 
-* **Java**: `gcc` and any Java Development Kit (JDK), such that `javac` and `javah` are accessible 
-  (i.e. in the system path). 
+* **Java**: <a name="Java-Requirements"></a> `gcc` and any Java Development Kit (JDK), such that `javac` and `javah` are accessible
+  (i.e. in the system path).
 * **MATLAB**: at least MATLAB 2008, for details, see [here](./code-experiments/build/matlab/README.md)
 * **Python on Windows with MinGW**: Python 2.7 and the Microsoft compiler package for Python 2.7 
   containing VC9, available [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266). 
@@ -63,6 +64,7 @@ _Additional_ requirements for running an algorithm in a specific language.
 * **Python on Linux**: `python-dev` must be installed to compile/install the `cocoex` module.
 * **Octave**: Octave 4.0.0 or later. On operating systems other than Windows, earlier versions might work.
   Under Linux the package `liboctave-dev` might be necessary. 
+* **Scala**: `scala` and all [Java requirements](#Java-Requirements).
 
 ### Guaranties (None)
 We tested the framework on Mac OSX, Ubuntu linux, Fedora linux, and Windows (XP,

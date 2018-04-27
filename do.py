@@ -621,18 +621,19 @@ def run_octave_sms():
 
 ################################################################################
 ## Java
-def build_java():
+def build_java_deps(build_dir):
     """ Builds the example experiment in Java """
     global RELEASE
+    build_path = join('code-experiments/build', build_dir)
     amalgamate(CORE_FILES + ['code-experiments/src/coco_runtime_c.c'],
-               'code-experiments/build/java/coco.c', RELEASE,
+               join(build_path, 'coco.c'), RELEASE,
                {"COCO_VERSION": git_version(pep440=True)})
-    expand_file('code-experiments/src/coco.h', 'code-experiments/build/java/coco.h',
+    expand_file('code-experiments/src/coco.h', join(build_path, 'coco.h'),
                 {'COCO_VERSION': git_version(pep440=True)})
     write_file(git_revision(), "code-experiments/build/java/REVISION")
     write_file(git_version(), "code-experiments/build/java/VERSION")
-    run('code-experiments/build/java', ['javac', 'CocoJNI.java'], verbose=_verbosity)
-    run('code-experiments/build/java', ['javah', 'CocoJNI'], verbose=_verbosity)
+    run(build_path, ['javac', 'CocoJNI.java'], verbose=_verbosity)
+    run(build_path, ['javah', 'CocoJNI'], verbose=_verbosity)
 
     # Finds the path to the headers jni.h and jni_md.h (platform-dependent)
     # and compiles the CocoJNI library (compiler-dependent). So far, only
@@ -648,13 +649,13 @@ def build_java():
         jdkpath2 = jdkpath1 + '\\win32'
 
         if '64' in platform.machine():
-            run('code-experiments/build/java', ['x86_64-w64-mingw32-gcc', '-I', jdkpath1, '-I',
+            run(build_path, ['x86_64-w64-mingw32-gcc', '-I', jdkpath1, '-I',
                                                 jdkpath2, '-shared', '-o', 'CocoJNI.dll',
                                                 'CocoJNI.c'], verbose=_verbosity)
 
             # 2. Windows with Cygwin (both 32-bit)
         elif '32' in platform.machine() or 'x86' in platform.machine():
-            run('code-experiments/build/java', ['i686-w64-mingw32-gcc', '-Wl,--kill-at', '-I',
+            run(build_path, ['i686-w64-mingw32-gcc', '-Wl,--kill-at', '-I',
                                                 jdkpath1, '-I', jdkpath2, '-shared', '-o',
                                                 'CocoJNI.dll', 'CocoJNI.c'], verbose=_verbosity)
 
@@ -664,7 +665,7 @@ def build_java():
                                env=os.environ, universal_newlines=True)
         jdkpath1 = jdkpath.split("bin")[0] + 'include'
         jdkpath2 = jdkpath1 + '\\win32'
-        run('code-experiments/build/java',
+        run(build_path,
             ['gcc', '-Wl,--kill-at', '-I', jdkpath1, '-I', jdkpath2,
              '-shared', '-o', 'CocoJNI.dll', 'CocoJNI.c'],
             verbose=_verbosity)
@@ -675,10 +676,10 @@ def build_java():
                                env=os.environ, universal_newlines=True)
         jdkpath1 = jdkpath.split("jni.h")[0]
         jdkpath2 = jdkpath1 + '/linux'
-        run('code-experiments/build/java',
+        run(build_path,
             ['gcc', '-I', jdkpath1, '-I', jdkpath2, '-c', 'CocoJNI.c'],
             verbose=_verbosity)
-        run('code-experiments/build/java',
+        run(build_path,
             ['gcc', '-I', jdkpath1, '-I', jdkpath2, '-o',
              'libCocoJNI.so', '-fPIC', '-shared', 'CocoJNI.c'],
             verbose=_verbosity)
@@ -692,17 +693,22 @@ def build_java():
         jdkpath1 = ('/Library/Java/JavaVirtualMachines/jdk' +
                     jdkversion + '.jdk/Contents/Home/include')
         jdkpath2 = jdkpath1 + '/darwin'
-        run('code-experiments/build/java',
+        run(build_path,
             ['gcc', '-I', jdkpath, '-I', jdkpath1, '-I', jdkpath2, '-c', 'CocoJNI.c'],
             verbose=_verbosity)
-        run('code-experiments/build/java',
+        run(build_path,
             ['gcc', '-dynamiclib', '-o', 'libCocoJNI.jnilib', 'CocoJNI.o'],
             verbose=_verbosity)
 
-    run('code-experiments/build/java', ['javac', 'Problem.java'], verbose=_verbosity)
-    run('code-experiments/build/java', ['javac', 'Benchmark.java'], verbose=_verbosity)
-    run('code-experiments/build/java', ['javac', 'Observer.java'], verbose=_verbosity)
-    run('code-experiments/build/java', ['javac', 'Suite.java'], verbose=_verbosity)
+    run(build_path, ['javac', 'Problem.java'], verbose=_verbosity)
+    run(build_path, ['javac', 'Benchmark.java'], verbose=_verbosity)
+    run(build_path, ['javac', 'Observer.java'], verbose=_verbosity)
+    run(build_path, ['javac', 'Suite.java'], verbose=_verbosity)
+    run(build_path, ['javac', 'Timing.java'], verbose=_verbosity)
+
+
+def build_java():
+    build_java_deps('java')
     run('code-experiments/build/java', ['javac', 'ExampleExperiment.java'], verbose=_verbosity)
 
 
@@ -727,6 +733,44 @@ def test_java():
     except subprocess.CalledProcessError:
         sys.exit(-1)
 
+def build_scala():
+    files = [
+        'CocoJNI.c',
+        'CocoJNI.java',
+        'Benchmark.java',
+        'Observer.java',
+        'Problem.java',
+        'Suite.java',
+        'Timing.java',
+    ]
+    build_dir = 'code-experiments/build'
+    java_dir, scala_dir = join(build_dir, 'java'), join(build_dir, 'scala')
+    for f in files:
+        copy_file(join(java_dir, f), join(scala_dir, f))
+    build_java_deps('scala')
+    run(scala_dir, ['scalac', 'ExampleExperiment.scala'], verbose=_verbosity)
+
+
+def run_scala():
+    """ Builds and runs the example experiment in Java """
+    build_scala()
+    try:
+        run('code-experiments/build/scala',
+            ['scala', '-Djava.library.path=.', 'ExampleExperiment'],
+            verbose=_verbosity)
+    except subprocess.CalledProcessError:
+        sys.exit(-1)
+
+
+def test_scala():
+    """ Builds and runs the test in Java, which is equal to the example experiment """
+    build_scala()
+    try:
+        run('code-experiments/build/scala',
+            ['scala', '-Djava.library.path=.', 'ExampleExperiment'],
+            verbose=_verbosity)
+    except subprocess.CalledProcessError:
+        sys.exit(-1)
 
 ################################################################################
 ## Post processing
@@ -761,7 +805,7 @@ for ee.suite_name, ee.observer_options['result_folder'] in [
         else:
             python('code-postprocessing/cocopp', ['test.py', sys.executable],
                    verbose=_verbosity)
-        
+
         # also run the doctests in aRTAplots/generate_aRTA_plot.py:
         python('code-postprocessing/aRTAplots', ['generate_aRTA_plot.py'], verbose=_verbosity)
     except subprocess.CalledProcessError:
@@ -771,7 +815,7 @@ for ee.suite_name, ee.observer_options['result_folder'] in [
         exdata_folder = 'code-experiments/build/python/exdata/'
         if os.path.exists(exdata_folder):
             shutil.rmtree(exdata_folder)
-    
+
 
 def verify_postprocessing(package_install_option = []):
     install_postprocessing(package_install_option = package_install_option)
@@ -987,6 +1031,7 @@ def main(args):
     elif cmd == 'install-postprocessing': install_postprocessing(package_install_option = package_install_option)
     elif cmd == 'run-c': run_c()
     elif cmd == 'run-java': run_java()
+    elif cmd == 'run-scala': run_scala()
     elif cmd == 'run-matlab': run_matlab()
     elif cmd == 'run-matlab-sms': run_matlab_sms()
     elif cmd == 'run-octave': run_octave()
@@ -1000,6 +1045,7 @@ def main(args):
     elif cmd == 'test-c-integration': test_c_integration()
     elif cmd == 'test-c-example': test_c_example()
     elif cmd == 'test-java': test_java()
+    elif cmd == 'test-scala': test_scala()
     elif cmd == 'test-python': test_python()
     elif cmd == 'test-octave': test_octave()
     elif cmd == 'test-postprocessing': test_postprocessing(all_tests = False, package_install_option = package_install_option)

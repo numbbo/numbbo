@@ -14,12 +14,12 @@ init:
   - cmd: "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - cmd: "set PATH=%PATH%;%CYGWIN%;%CYGWIN%\\bin"
   - cmd: "set PATH=C:\\Program Files\\MiKTeX 2.9\\miktex\\bin\\x64;%PATH%"
-  
 
 install:
   - cmd: conda install -y matplotlib numpy scipy setuptools six pytest cython
   - cmd: python do.py run-python
   - cmd: python do.py install-postprocessing
+  - cmd: choco install scala
 
 test_script:
   # run the experiment
@@ -31,6 +31,7 @@ test_script:
   - cmd: python do.py build-python
   - cmd: python do.py test-python
   - cmd: python do.py test-java
+  - cmd: python do.py test-scala
   - cmd: python do.py test-preprocessing
   - cmd: python do.py test-postprocessing
   # - cmd: python do.py test-postprocessing-all

@@ -75,8 +75,16 @@ jobs:
             apt-get install -y openjdk-8-jdk
             updatedb
       - run:
-          name: Run coco octave tests
+          name: Run coco java tests
           command: python3 do.py test-java
+          no_output_timeout: 1800
+      - run:
+          name: Install scala
+          command: |
+            apt-get install -y scala
+      - run:
+          name: Run coco scala tests
+          command: python3 do.py test-scala
           no_output_timeout: 1800
       - run:
           name: Run coco pre-processing tests
@@ -161,8 +169,16 @@ jobs:
             apt-get install -y openjdk-8-jdk
             updatedb
       - run:
-          name: Run coco octave tests
+          name: Run coco java tests
           command: python do.py test-java
+          no_output_timeout: 1800
+      - run:
+          name: Install scala
+          command: |
+            apt-get install -y scala
+      - run:
+          name: Run coco scala tests
+          command: python do.py test-scala
           no_output_timeout: 1800
       - run:
           name: Run coco pre-processing tests
