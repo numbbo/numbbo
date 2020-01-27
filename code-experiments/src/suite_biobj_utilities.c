@@ -534,6 +534,9 @@ static double suite_biobj_get_best_hyp_value(const char *suite_name, const char 
       }
     }
   }
+  else if (strcmp(suite_name, "toy-socket-biobj") == 0) {
+    return 0; /* TODO */
+  }
   else {
     coco_error("suite_biobj_get_best_hyp_value(): suite %s not supported", suite_name);
     return 0; /* Never reached */

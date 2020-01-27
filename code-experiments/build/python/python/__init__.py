@@ -51,6 +51,8 @@ _default_observers = {
     'bbob-largescale': 'bbob',
     'bbob-mixint': 'bbob',
     'bbob-biobj-mixint': 'bbob-biobj',
+    'toy-socket': 'bbob',
+    'toy-socket-biobj': 'bbob-biobj',
     }
 
 class Suite(_Suite):

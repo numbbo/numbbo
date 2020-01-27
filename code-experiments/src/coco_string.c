@@ -34,7 +34,7 @@ static char *coco_strdup(const char *string) {
  *
  * @note This should be handled differently!
  */
-#define COCO_VSTRDUPF_BUFLEN 444
+#define COCO_VSTRDUPF_BUFLEN 4444
 
 /**
  * @brief Formatted string duplication, with va_list arguments.

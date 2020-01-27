@@ -94,6 +94,11 @@ if __name__ == "__main__":
         pass
     else:
         for name in cocoex.known_suite_names:
+            # Skip any toy suites
+            if 'toy' in name:
+                print("skipping suite {}".format(name))
+                continue
+
             data_file_path = ("data/regression_test_%ddata_for_suite_" % ndata) + name + ".py"
 
             if not os.path.exists(data_file_path):

@@ -97,6 +97,10 @@ jobs:
           name: Run regression test
           command: python do.py test-suites
           no_output_timeout: 1800
+      - run:
+          name: Test the socket communication
+          command: python do.py test-socket-python
+          no_output_timeout: 1800
 
   test_ubuntu_latest_python2:
     docker:
@@ -187,6 +191,10 @@ jobs:
       - run:
           name: Run regression test
           command: python do.py test-suites
+          no_output_timeout: 1800
+      - run:
+          name: Test the socket communication
+          command: python do.py test-socket-python
           no_output_timeout: 1800
 
 

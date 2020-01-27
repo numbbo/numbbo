@@ -8,9 +8,9 @@ cimport numpy as np
 from cocoex.exceptions import InvalidProblemException, NoSuchProblemException, NoSuchSuiteException
 
 known_suite_names = ["bbob", "bbob-biobj", "bbob-largescale",
-                     "bbob-mixint", "bbob-biobj-mixint"]
+                     "bbob-mixint", "bbob-biobj-mixint", "toy-socket", "toy-socket-biobj"]
 _known_suite_names = ["bbob", "bbob-biobj", "bbob-biobj-ext", "bbob-constrained", "bbob-largescale",
-                     "bbob-mixint", "bbob-biobj-mixint"]
+                     "bbob-mixint", "bbob-biobj-mixint", "toy-socket", "toy-socket-biobj"]
 
 
 # _test_assignment = "seems to prevent an 'export' error (i.e. induce export) to make this module known under Linux and Windows (possibly because of the leading underscore of _interface)"

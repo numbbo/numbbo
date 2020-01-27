@@ -127,7 +127,7 @@ static void coco_compute_truncated_uniform_swap_permutation(size_t *P, long seed
 
       second_swap_var = (size_t) coco_random_unif_integer((long) lower_bound,
                                                           (long) upper_bound - 1,
-                                                          seed + (1 + idx_swap) * 1000);
+                                                          seed + (long) (1 + idx_swap) * 1000);
       if (second_swap_var >= first_swap_var) {
         second_swap_var += 1;
       }

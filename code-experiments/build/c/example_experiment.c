@@ -131,7 +131,6 @@ int main(void) {
    * Adapt to your need. Note that the experiment is run according
    * to the settings, defined in example_experiment(...) below.
    */
-  coco_set_log_level("info");
 
   /**
    * For more details on how to change the default suite and observer options, see

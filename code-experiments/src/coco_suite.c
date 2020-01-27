@@ -22,6 +22,8 @@
 #include "suite_toy.c"
 #include "suite_largescale.c"
 #include "suite_cons_bbob.c"
+#include "suite_toy_socket.c"
+#include "suite_toy_socket_biobj.c"
 
 /** @brief The maximum number of different instances in a suite. */
 #define COCO_MAX_INSTANCES 1000
@@ -31,7 +33,7 @@
  *
  * @note This function needs to be updated when a new suite is added to COCO.
  */
-static coco_suite_t *coco_suite_intialize(const char *suite_name) {
+static coco_suite_t *coco_suite_intialize(const char *suite_name, const char *suite_options) {
 
   coco_suite_t *suite;
 
@@ -50,6 +52,10 @@ static coco_suite_t *coco_suite_intialize(const char *suite_name) {
     suite = suite_bbob_mixint_initialize(suite_name);
   } else if (strcmp(suite_name, "bbob-biobj-mixint") == 0) {
     suite = suite_biobj_mixint_initialize();
+  } else if (strcmp(suite_name, "toy-socket") == 0) {
+    suite = suite_toy_socket_initialize(suite_options);
+  } else if (strcmp(suite_name, "toy-socket-biobj") == 0) {
+    suite = suite_toy_socket_biobj_initialize(suite_options);
   }
   else {
     coco_error("coco_suite_intialize(): unknown problem suite");
@@ -80,6 +86,10 @@ static const char *coco_suite_get_instances_by_year(const coco_suite_t *suite, c
     year_string = suite_bbob_mixint_get_instances_by_year(year);
   } else if (strcmp(suite->suite_name, "bbob-biobj-mixint") == 0) {
     year_string = suite_biobj_mixint_get_instances_by_year(year);
+  } else if (strcmp(suite->suite_name, "toy-socket") == 0) {
+    year_string = suite_toy_socket_get_instances_by_year(year);
+  } else if (strcmp(suite->suite_name, "toy-socket-biobj") == 0) {
+    year_string = suite_toy_socket_biobj_get_instances_by_year(year);
   } else {
     coco_error("coco_suite_get_instances_by_year(): suite '%s' has no years defined", suite->suite_name);
     return NULL;
@@ -123,6 +133,10 @@ static coco_problem_t *coco_suite_get_problem_from_indices(coco_suite_t *suite,
     problem = suite_bbob_mixint_get_problem(suite, function_idx, dimension_idx, instance_idx);
   } else if (strcmp(suite->suite_name, "bbob-biobj-mixint") == 0) {
     problem = suite_biobj_mixint_get_problem(suite, function_idx, dimension_idx, instance_idx);
+  } else if (strcmp(suite->suite_name, "toy-socket") == 0) {
+    problem = suite_toy_socket_get_problem(suite, function_idx, dimension_idx, instance_idx);
+  } else if (strcmp(suite->suite_name, "toy-socket-biobj") == 0) {
+    problem = suite_toy_socket_biobj_get_problem(suite, function_idx, dimension_idx, instance_idx);
   } else {
     coco_error("coco_suite_get_problem_from_indices(): unknown problem suite");
     return NULL;
@@ -645,11 +659,12 @@ coco_suite_t *coco_suite(const char *suite_name, const char *suite_instance, con
   coco_option_keys_t *known_option_keys, *given_option_keys, *redundant_option_keys;
 
   /* Sets the valid keys for suite options and suite instance */
-  const char *known_keys_o[] = { "dimensions", "dimension_indices", "function_indices", "instance_indices" };
+  const char *known_keys_o[] = { "dimensions", "dimension_indices", "function_indices", "instance_indices",
+                                 "host_name", "port", "precision_x" };
   const char *known_keys_i[] = { "year", "instances" };
 
   /* Initialize the suite */
-  suite = coco_suite_intialize(suite_name);
+  suite = coco_suite_intialize(suite_name, suite_options);
 
   /* Set the instance */
   if ((!suite_instance) || (strlen(suite_instance) == 0))
@@ -866,7 +881,7 @@ coco_problem_t *coco_suite_get_next_problem(coco_suite_t *suite, coco_observer_t
           (unsigned long) suite->dimensions[dimension_idx], (unsigned long) suite->functions[function_idx]);
       coco_free_memory(time_string);
     }
-    else if ((long) function_idx != previous_function_idx){
+    else if ((long) function_idx != previous_function_idx) {
       /* A new function started */
       coco_info_partial("f%02lu", (unsigned long) suite->functions[function_idx]);
     }

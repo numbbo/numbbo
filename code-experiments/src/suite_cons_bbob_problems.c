@@ -142,7 +142,8 @@ static void feasible_direction_set_length(double * feasible_direction,
   size_t i;
   double r[1], maxabs, maxrel;
 
-  for (maxabs = maxrel = i = 0; i < dimension; ++i) {
+  maxabs = maxrel = 0.0;
+  for (i = 0; i < dimension; ++i) {
     maxabs = coco_double_max(maxabs, fabs(xopt[i]));
     maxrel = coco_double_max(maxrel, feasible_direction[i] / (feas_bound - xopt[i]));
     maxrel = coco_double_max(maxrel, feasible_direction[i] / (-feas_bound - xopt[i]));

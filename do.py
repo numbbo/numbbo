@@ -14,6 +14,7 @@ from subprocess import STDOUT
 import platform
 import time
 import glob
+import signal
 
 
 ## Change to the root directory of repository and add our tools/
@@ -645,15 +646,17 @@ def build_java():
         jdkpath2 = jdkpath1 + '\\win32'
 
         if '64' in platform.machine():
-            run('code-experiments/build/java', ['x86_64-w64-mingw32-gcc', '-I',
-                                                jdkpath1, '-I', jdkpath2, '-shared', '-o',
-                                                'CocoJNI.dll', 'CocoJNI.c'], verbose=_verbosity)
+            run('code-experiments/build/java', ['x86_64-w64-mingw32-gcc', '-I', jdkpath1, '-I',
+                                                jdkpath2, '-shared', '-o', 'CocoJNI.dll',
+                                                'CocoJNI.c', '-lwsock32'],
+                verbose=_verbosity)
 
             # 2. Windows with Cygwin (both 32-bit)
         elif '32' in platform.machine() or 'x86' in platform.machine():
             run('code-experiments/build/java', ['i686-w64-mingw32-gcc', '-Wl,--kill-at', '-I',
                                                 jdkpath1, '-I', jdkpath2, '-shared', '-o',
-                                                'CocoJNI.dll', 'CocoJNI.c'], verbose=_verbosity)
+                                                'CocoJNI.dll', 'CocoJNI.c', '-lwsock32'],
+                verbose=_verbosity)
 
     # 3. Windows without Cygwin
     elif ('win32' in sys.platform) and ('cygwin' not in os.environ['PATH']):
@@ -663,7 +666,7 @@ def build_java():
         jdkpath2 = jdkpath1 + '\\win32'
         run('code-experiments/build/java',
             ['gcc', '-Wl,--kill-at', '-I', jdkpath1, '-I', jdkpath2,
-             '-shared', '-o', 'CocoJNI.dll', 'CocoJNI.c'],
+             '-shared', '-o', 'CocoJNI.dll', 'CocoJNI.c', '-lwsock32'],
             verbose=_verbosity)
 
     # 4. Linux
@@ -732,6 +735,55 @@ def test_java():
             verbose=_verbosity)
     except subprocess.CalledProcessError:
         sys.exit(-1)
+
+
+################################################################################
+## External evaluation with sockets
+def run_socket_c():
+    """ Builds and runs the C server for external evaluation with sockets """
+    make('code-experiments/rw-problems', 'clean', verbose=_build_verbosity)
+    make('code-experiments/rw-problems', 'all', verbose=_build_verbosity)
+    try:
+        run('code-experiments/rw-problems', ['./socket_server'], verbose=_verbosity)
+    except subprocess.CalledProcessError:
+        sys.exit(-1)
+
+
+def run_socket_python():
+    """ Runs the Python server for external evaluation with sockets"""
+    python(os.path.join('code-experiments', 'rw-problems'), ['socket_server.py'], verbose=_verbosity)
+
+
+def test_socket_python(package_install_option=[]):
+    """ Tests the toy-socket suite in Python with the Python socket server """
+    # Run the Python socket server
+    call = ['python']
+    file = [os.path.join('code-experiments', 'rw-problems', 'socket_server.py')]
+    if 'win32' in sys.platform:
+        terminal = ['start']
+        command = terminal + call + file
+    else:
+        terminal_start = ['exec', 'xterm', '-e', '\"']
+        terminal_end = ['\"']
+        command = terminal_start + call + file + terminal_end
+    print('RUN\t' + ' '.join(command))
+    try:
+        server_process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+    except subprocess.CalledProcessError as e:
+        raise e
+    # Build the Python example experiment
+    build_python(package_install_option=package_install_option)
+    # Run the Python example experiment with the toy-socket suite
+    try:
+        python(os.path.join('code-experiments', 'build', 'python'),
+               ['example_experiment.py', 'toy-socket'])
+        if 'win32' in sys.platform:
+            # Killing the proccess on Windows not yet working... TODO
+            subprocess.call(['taskkill', '/F', '/T', '/PID', str(server_process.pid)])
+        else:
+            os.kill(server_process.pid, signal.SIGTERM)
+    except subprocess.CalledProcessError as e:
+        raise e
 
 
 ################################################################################
@@ -920,6 +972,9 @@ Available commands for users:
                             example experiment in Python. The optional
                             parameter "and-test" also runs the tests of
                             `coco_test.py` (see NOTE below)
+                            
+  run-socket-c            - Build and run the C server for external evaluations through sockets
+  run-socket-python       - Run the Python server for external evaluations through sockets
 
 Available commands for developers:
 
@@ -955,6 +1010,8 @@ Available commands for developers:
                             below)
   test-preprocessing      - Runs preprocessing tests [needs access to the
                             internet] (see NOTE below)
+                            
+  test-socket-python      - Test the toy-socket suite in Python using the Python socket server
   
 NOTE: These commands install Python packages to the global site packages by
       by default. This behavior can be modified by providing one of the
@@ -982,24 +1039,24 @@ def main(args):
             package_install_option = ['--user']
         elif arg[:13] == 'install-home=':
             package_install_option = ['--home=' + arg[13:]]
-    if cmd == 'build': build(package_install_option = package_install_option)
-    elif cmd == 'run': run_all(package_install_option = package_install_option)
-    elif cmd == 'test': test(package_install_option = package_install_option)
+    if cmd == 'build': build(package_install_option=package_install_option)
+    elif cmd == 'run': run_all(package_install_option=package_install_option)
+    elif cmd == 'test': test(package_install_option=package_install_option)
     elif cmd == 'build-c': build_c()
     elif cmd == 'build-java': build_java()
     elif cmd == 'build-matlab': build_matlab()
     elif cmd == 'build-matlab-sms': build_matlab_sms()
     elif cmd == 'build-octave': build_octave()
     elif cmd == 'build-octave-sms': build_octave_sms()
-    elif cmd == 'build-python': build_python(package_install_option = package_install_option)
-    elif cmd == 'install-postprocessing': install_postprocessing(package_install_option = package_install_option)
+    elif cmd == 'build-python': build_python(package_install_option=package_install_option)
+    elif cmd == 'install-postprocessing': install_postprocessing(package_install_option=package_install_option)
     elif cmd == 'run-c': run_c()
     elif cmd == 'run-java': run_java()
     elif cmd == 'run-matlab': run_matlab()
     elif cmd == 'run-matlab-sms': run_matlab_sms()
     elif cmd == 'run-octave': run_octave()
     elif cmd == 'run-octave-sms': run_octave_sms()
-    elif cmd == 'run-python': run_python(also_test_python, package_install_option = package_install_option)
+    elif cmd == 'run-python': run_python(also_test_python, package_install_option=package_install_option)
     elif cmd == 'quiet': quiet(args[1:])
     elif cmd == 'silent': silent(args[1:])
     elif cmd == 'verbose': verbose(args[1:])
@@ -1010,13 +1067,16 @@ def main(args):
     elif cmd == 'test-java': test_java()
     elif cmd == 'test-python': test_python()
     elif cmd == 'test-octave': test_octave()
-    elif cmd == 'test-postprocessing': test_postprocessing(all_tests = False, package_install_option = package_install_option)
-    elif cmd == 'test-postprocessing-all': test_postprocessing(all_tests = True, package_install_option = package_install_option)
+    elif cmd == 'test-postprocessing': test_postprocessing(all_tests=False, package_install_option=package_install_option)
+    elif cmd == 'test-postprocessing-all': test_postprocessing(all_tests=True, package_install_option=package_install_option)
     elif cmd == 'test-suites': test_suites(args[1:])
-    elif cmd == 'verify-postprocessing': verify_postprocessing(package_install_option = package_install_option)
+    elif cmd == 'verify-postprocessing': verify_postprocessing(package_install_option=package_install_option)
     elif cmd == 'leak-check': leak_check()
-    elif cmd == 'install-preprocessing': install_preprocessing(package_install_option = package_install_option)
-    elif cmd == 'test-preprocessing': test_preprocessing(package_install_option = package_install_option)
+    elif cmd == 'install-preprocessing': install_preprocessing(package_install_option=package_install_option)
+    elif cmd == 'test-preprocessing': test_preprocessing(package_install_option=package_install_option)
+    elif cmd == 'run-socket-c': run_socket_c()
+    elif cmd == 'run-socket-python': run_socket_python()
+    elif cmd == 'test-socket-python': test_socket_python(package_install_option=package_install_option)
     else: help()
 
 
