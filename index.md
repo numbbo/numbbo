@@ -17,6 +17,8 @@ Related links
 -------------
 
 <ul>
+<li><a href="https://coco-platform.org"><B>New documentation pages for COCO</B></a> (replacing all this here)
+</li>
 <li><a href="https://github.com/numbbo/coco">Code web page on Github</a> (for how to run experiments)
 </li>
 <li><a href="https://numbbo.github.io/data-archive">
